@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Randy Lent</title>
+
+  <script>
+    // Phones and unfolded foldables get the phone card. This goes by device, so
+    // resizing a PC window can't trigger it, and tablets keep the desktop card.
+    (function () {
+      const ua = navigator.userAgent;
+      const brands = navigator.userAgentData;
+      const phone = (brands && brands.mobile) || (/Mobi/.test(ua) && !/iPad/.test(ua));
+
+      // Unfolded foldables report as tablets, but their screens are nearly square.
+      const shape = Math.max(screen.width, screen.height) / Math.min(screen.width, screen.height);
+      const foldable = /Android|Linux/.test(ua) && matchMedia("(pointer: coarse)").matches && shape < 1.3;
+
+      if (phone || foldable) {
+        document.documentElement.style.visibility = "hidden";
+        location.replace("phone-version/?card");
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="https://unpkg.com/7.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- WebGL Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- MAIN SOCIAL WINDOW -->
+  <div class="window glass active" id="social-window" style="z-index: 10;">
+    <div class="title-bar" id="titleBar">
+      <div class="title-bar-text">Social Media</div>
+      <div class="title-bar-controls">
+        <button aria-label="Help" id="helpButton"></button>
+      </div>
+    </div>
+
+    <div class="window-body has-status has-scrollbar">
+
+      <!-- ACTIVE ACCOUNTS -->
+      <div class="section-title">Active Profiles</div>
+      <ul class="social-list">
+        <li>
+          <a href="https://www.youtube.com/user/randyviewer" target="_blank" class="social-link">
+            <i class="fa-brands fa-youtube" style="color:#ff0000;"></i>
+            <span>Randy Lent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/QwertysAdvocate" target="_blank" class="social-link">
+            <i class="fa-brands fa-twitter" style="color:#1da1f2;"></i>
+            <span>@QwertysAdvocate</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://instagram.com/instantlent" target="_blank" class="social-link">
+            <i class="fa-brands fa-instagram" style="color:#e1306c;"></i>
+            <span>@instantlent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://facebook.com/randy.lenk.7" target="_blank" class="social-link">
+            <i class="fa-brands fa-facebook" style="color:#1877f2;"></i>
+            <span>Randy Lenk</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitch.tv/thecoolguymaxtwitch/profile" target="_blank" class="social-link">
+            <i class="fa-brands fa-twitch" style="color:#9146ff;"></i>
+            <span>TheCoolGuyMaxTwitch</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://kick.com/pewdiebird" target="_blank" class="social-link">
+            <svg class="brand-svg" viewBox="0 0 24 24" fill="#53fc18" aria-hidden="true">
+              <path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z" />
+            </svg>
+            <span>pewdiebird</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://rumble.com/user/pewdiebird" target="_blank" class="social-link">
+            <svg class="brand-svg" viewBox="0 0 24 24" fill="#85c742" aria-hidden="true">
+              <path d="M14.4528 13.5458c.8064-.6542.9297-1.8381.2756-2.6445a1.8802 1.8802 0 0 0-.2756-.2756 21.2127 21.2127 0 0 0-4.3121-2.776c-1.066-.51-2.256.2-2.4261 1.414a23.5226 23.5226 0 0 0-.14 5.5021c.116 1.23 1.292 1.964 2.372 1.492a19.6285 19.6285 0 0 0 4.5062-2.704v-.008zm6.9322-5.4002c2.0335 2.228 2.0396 5.637.014 7.8723A26.1487 26.1487 0 0 1 8.2946 23.846c-2.6848.6713-5.4168-.914-6.1662-3.5781-1.524-5.2002-1.3-11.0803.17-16.3045.772-2.744 3.3521-4.4661 6.0102-3.832 4.9242 1.174 9.5443 4.196 13.0764 8.0121v.002z" />
+            </svg>
+            <span>pewdiebird</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://soundcloud.com/thefaithfullgamers" target="_blank" class="social-link">
+            <i class="fa-brands fa-soundcloud" style="color:#ff5500;"></i>
+            <span>TheFaithfullGamers</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/pewdiebird" target="_blank" class="social-link">
+            <i class="fa-brands fa-github" style="color:#181717;"></i>
+            <span>pewdiebird</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://bsky.app/profile/pewdiebird.bsky.social" target="_blank" class="social-link">
+            <svg class="brand-svg" viewBox="0 0 24 24" fill="#1185fe" aria-hidden="true">
+              <path d="M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087-2.247 4.046-6.436 6.798-8.501C20.783 1.366 24 .213 24 3.883c0 .732-.42 6.156-.667 7.037-.856 3.061-3.978 3.842-6.755 3.37 4.854.826 6.089 3.562 3.422 6.299-5.065 5.196-7.28-1.304-7.847-2.97-.104-.305-.152-.448-.153-.327 0-.121-.05.022-.153.327-.568 1.666-2.782 8.166-7.847 2.97-2.667-2.737-1.432-5.473 3.422-6.3-2.777.473-5.899-.308-6.755-3.369C.42 10.04 0 4.615 0 3.883c0-3.67 3.217-2.517 5.202-1.026" />
+            </svg>
+            <span>@pewdiebird.bsky.social</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://www.reddit.com/user/pewdiebird/" target="_blank" class="social-link">
+            <i class="fa-brands fa-reddit-alien" style="color:#ff4500;"></i>
+            <span>u/pewdiebird</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- LEGACY ACCOUNTS -->
+      <div class="section-title mt-2">Legacy & Reserved</div>
+      <ul class="social-list">
+        <li>
+          <a href="https://www.tumblr.com/tumblerlent" target="_blank" class="social-link">
+            <i class="fa-brands fa-tumblr" style="color:#36465d;"></i>
+            <span>tumblerlent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://randtartlent.deviantart.com" target="_blank" class="social-link">
+            <i class="fa-brands fa-deviantart" style="color:#05cc47;"></i>
+            <span>randtartlent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://younow.com/TheFaithfullGamers" target="_blank" class="social-link">
+            <span class="icon-tile" style="background:#08d687;"><i class="fa-solid fa-video"></i></span>
+            <span>TheFaithfullGamers</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://flickr.com/photos/148410777@N08" target="_blank" class="social-link">
+            <i class="fa-brands fa-flickr" style="color:#f40083;"></i>
+            <span>Flickr Lent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://plus.google.com/u/0/103695807154772767579" target="_blank" class="social-link">
+            <i class="fa-brands fa-google-plus-g" style="color:#db4437;"></i>
+            <span>Randy Lent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://ask.fm/AskLent2" target="_blank" class="social-link">
+            <svg class="brand-svg" viewBox="0 0 24 24" fill="#db3552" aria-hidden="true">
+              <path d="M12 24c-2.172 0-4.195-.547-6.07-1.64a12.003 12.003 0 01-4.29-4.29A11.842 11.842 0 010 12c0-2.172.547-4.195 1.64-6.07a12.003 12.003 0 014.29-4.29A11.842 11.842 0 0112 0c2.172 0 4.195.547 6.07 1.64a12.003 12.003 0 014.29 4.29A11.842 11.842 0 0124 12c0 2.172-.547 4.195-1.64 6.07a12.003 12.003 0 01-4.29 4.29A11.842 11.842 0 0112 24zm2.133-14.227c-.39.282-.664.688-.82 1.22-.157.53-.188 1.109-.094 1.734s.312 1.222.656 1.793c.344.57.754 1.027 1.23 1.37.477.344.961.54 1.454.587.492.046.933-.07 1.324-.352.39-.281.664-.688.82-1.219.156-.531.188-1.11.094-1.734a4.839 4.839 0 00-.656-1.793 4.564 4.564 0 00-1.23-1.371c-.477-.344-.962-.54-1.454-.586a1.887 1.887 0 00-1.324.351zm2.484 5.18c-.469.188-.937.152-1.406-.105-.469-.258-.813-.66-1.031-1.207a3.082 3.082 0 01-.164-.797h.023c.063 0 .14-.016.234-.047h-.023c.188-.063.316-.211.387-.445a.92.92 0 00-.012-.633.842.842 0 00-.164-.305v.024c.187-.235.406-.399.656-.493.469-.203.938-.175 1.406.082.47.258.809.668 1.02 1.23.21.563.227 1.106.047 1.63-.18.523-.504.879-.973 1.066zm-3.586.235a.825.825 0 00-.515-.106.768.768 0 00-.47.27l-.187.234a.348.348 0 00-.093.258c0 .062.015.125.046.187.391.735.711 1.242.961 1.524a.124.124 0 00.13.058.18.18 0 00.128-.082c.094-.234.219-.734.375-1.5l.047-.258v-.07a.38.38 0 00-.164-.328zm-4.804-4.641c-.47.062-.891.289-1.266.68-.375.39-.664.882-.867 1.476a5.391 5.391 0 00-.282 1.887c.016.664.149 1.262.399 1.793.25.531.574.93.973 1.195.398.266.832.367 1.3.305.47-.063.891-.285 1.266-.668.375-.383.664-.871.867-1.465a5.391 5.391 0 00.281-1.887c-.015-.664-.148-1.261-.398-1.793-.25-.53-.574-.933-.973-1.207a1.806 1.806 0 00-1.3-.316zm1.828 3.633c.03.593-.102 1.113-.399 1.558-.297.446-.68.692-1.148.739-.469.046-.883-.118-1.242-.493-.36-.375-.563-.851-.61-1.43v-.187c0-.219.024-.43.07-.633v.024a.822.822 0 00.235.023.703.703 0 00.469-.316.81.81 0 00.14-.598.725.725 0 00-.07-.328c.203-.156.445-.258.727-.305.468-.047.882.121 1.242.504s.554.864.586 1.442zM5.602 7.547a1.17 1.17 0 00-.329-.305c-.156-.094-.304-.125-.445-.094a.489.489 0 00-.328.258.961.961 0 00-.117.375l-.281 2.766.304-.516c.25-.39.516-.726.797-1.008.406-.406.797-.671 1.172-.796a1.54 1.54 0 01-.445-.329c-.12-.104-.227-.243-.328-.351zM17.25 5.016a.55.55 0 00-.48-.141c-.18.031-.34.164-.48.398-.08.157-.142.32-.188.493-.027.058-.032.125-.047.187l-.024.07c-.11.25-.21.43-.304.54.453.015.89.101 1.312.257a4.83 4.83 0 011.594.961l.21.211-1.265-2.578a.925.925 0 00-.328-.398Z" />
+            </svg>
+            <span>AskLent2 (Defunct)</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://www.twitch.tv/coolguymax" target="_blank" class="social-link">
+            <i class="fa-brands fa-twitch" style="color:#9146ff;"></i>
+            <span>coolguymax (Defunct)</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://www.tiktok.com/@musiclent" target="_blank" class="social-link">
+            <i class="fa-brands fa-tiktok" style="color:#000;"></i>
+            <span>musiclent</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://truthsocial.com/@RandyJoeCent" target="_blank" class="social-link">
+            <svg class="icon-tile" viewBox="0 0 24 24" aria-hidden="true">
+              <rect width="24" height="24" rx="5" fill="#5448ee" />
+              <path fill="#fff" d="M4 6.5h2.75v2.25H4zM8 6.5h9.5v2.25h-3.4V17.5h-2.5V8.75H8z" />
+              <rect x="16" y="14.5" width="3.25" height="3" fill="#3cdbb4" />
+            </svg>
+            <span>@RandyJoeCent (banned lol)</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- ALTS & MISC DROPDOWN -->
+      <details class="alts-details mt-2">
+        <summary><i class="fa-solid fa-caret-right"></i> Alts & Misc (It's a long list!)</summary>
+        <div class="details-content">
+
+          <div class="alt-header">YouTube</div>
+          <ul class="social-list alt-grid">
+            <li><a href="https://www.youtube.com/@randyviewerLIVE" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Live Lent</span></a></li>
+            <li><a href="https://www.youtube.com/@TheFaithfullGamers" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>TheFaithfullGamers</span></a></li>
+            <li><a href="https://www.youtube.com/@FaithfullStudios" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>FaithfullStudios</span></a></li>
+            <li><a href="https://www.youtube.com/@IsaiahEspinoza" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Isaiah Espinoza</span></a></li>
+            <li><a href="https://www.youtube.com/@Memealicious" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Memealicious</span></a></li>
+            <li><a href="https://www.youtube.com/@Memealicious." target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Memealicious Archives</span></a></li>
+            <li><a href="https://www.youtube.com/@LegoLent" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>LegoLent</span></a></li>
+            <li><a href="https://www.youtube.com/@EverythingGooglePro" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>EverythingGooglePro</span></a></li>
+            <li><a href="https://www.youtube.com/@3dumbstooges140" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>3 dumbstooges</span></a></li>
+            <li><a href="https://www.youtube.com/@thecourthouseramblers5291" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>The Courthouse Ramblers</span></a></li>
+            <li><a href="https://www.youtube.com/@PewDieBird" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>PewDieBird</span></a></li>
+            <li><a href="https://www.youtube.com/@Internet.Explorer" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Internet Explorer</span></a></li>
+            <li><a href="https://www.youtube.com/@Sprite14" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Sprite14</span></a></li>
+            <li><a href="https://www.youtube.com/@LD-hu7wx" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>LD2020</span></a></li>
+            <li><a href="https://www.youtube.com/@TheRatterreesMC" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>TheRatterreesMC</span></a></li>
+            <li><a href="https://www.youtube.com/@AcerClass" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>AcerClass</span></a></li>
+            <li><a href="https://www.youtube.com/@therattatatatatataterrees6005" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>TheRattatatata...</span></a></li>
+            <li><a href="https://www.youtube.com/@corpselent9363" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Corpse Lent</span></a></li>
+            <li><a href="https://www.youtube.com/@SKRILET" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>SKRILET</span></a></li>
+            <li><a href="https://www.youtube.com/@user-cl5dg9dt1r" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>user-cl5dg9dt1r</span></a></li>
+            <li><a href="https://www.youtube.com/@TheGemmyGroup" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>TheGemmyGroup</span></a></li>
+            <li><a href="https://www.youtube.com/@KIONNewsChannel46" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>KION NewsChannel 46</span></a></li>
+            <li><a href="https://www.youtube.com/@omqxcookies" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>omqxcookies</span></a></li>
+            <li><a href="https://www.youtube.com/@8bitminecrafters92" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>8Bit Minecrafters</span></a></li>
+            <li><a href="https://www.youtube.com/@Sythrickdotpng" target="_blank" class="social-link"><i
+                  class="fa-brands fa-youtube" style="color:#ff0000;"></i><span>Sythrickdotpng</span></a></li>
+          </ul>
+
+          <div class="alt-header mt-2">Twitter</div>
+          <ul class="social-list alt-grid">
+            <li><a href="https://twitter.com/realPewDieBird" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitter" style="color:#1da1f2;"></i><span>realPewDieBird</span></a></li>
+            <li><a href="https://twitter.com/randydanklent" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitter" style="color:#1da1f2;"></i><span>randydanklent</span></a></li>
+            <li><a href="https://twitter.com/FaithfullStudio" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitter" style="color:#1da1f2;"></i><span>FaithfullStudio</span></a></li>
+            <li><a href="https://twitter.com/RodeBasedNews" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitter" style="color:#1da1f2;"></i><span>RodeBasedNews</span></a></li>
+            <li><a href="https://twitter.com/AnscoAutoTwt" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitter" style="color:#1da1f2;"></i><span>AnscoAutoTwt</span></a></li>
+            <li><a href="https://twitter.com/BlinkyGPT" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitter" style="color:#1da1f2;"></i><span>BlinkyGPT</span></a></li>
+          </ul>
+
+          <div class="alt-header mt-2">Bluesky</div>
+          <ul class="social-list alt-grid">
+            <li><a href="https://bsky.app/profile/blinkygpt.bsky.social" target="_blank" class="social-link"><svg
+                  class="brand-svg" viewBox="0 0 24 24" fill="#1185fe" aria-hidden="true">
+                  <path d="M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087-2.247 4.046-6.436 6.798-8.501C20.783 1.366 24 .213 24 3.883c0 .732-.42 6.156-.667 7.037-.856 3.061-3.978 3.842-6.755 3.37 4.854.826 6.089 3.562 3.422 6.299-5.065 5.196-7.28-1.304-7.847-2.97-.104-.305-.152-.448-.153-.327 0-.121-.05.022-.153.327-.568 1.666-2.782 8.166-7.847 2.97-2.667-2.737-1.432-5.473 3.422-6.3-2.777.473-5.899-.308-6.755-3.369C.42 10.04 0 4.615 0 3.883c0-3.67 3.217-2.517 5.202-1.026" />
+                </svg><span>BlinkyGPT</span></a></li>
+          </ul>
+
+          <div class="alt-header mt-2">Twitch</div>
+          <ul class="social-list alt-grid">
+            <li><a href="https://www.twitch.tv/pewdiebird" target="_blank" class="social-link"><i
+                  class="fa-brands fa-twitch" style="color:#9146ff;"></i><span>pewdiebird</span></a></li>
+          </ul>
+
+          <div class="alt-header mt-2">GitHub</div>
+          <ul class="social-list alt-grid">
+            <li><a href="https://github.com/BlinkyGPT" target="_blank" class="social-link"><i
+                  class="fa-brands fa-github" style="color:#181717;"></i><span>BlinkyGPT</span></a></li>
+            <li><a href="https://github.com/FaithfullStudios" target="_blank" class="social-link"><i
+                  class="fa-brands fa-github" style="color:#181717;"></i><span>Faithfull Studios</span></a></li>
+            <li><a href="https://github.com/Blinky-AI" target="_blank" class="social-link"><i
+                  class="fa-brands fa-github" style="color:#181717;"></i><span>Blinky Ink</span></a></li>
+            <li><a href="https://github.com/thecompanycompany" target="_blank" class="social-link"><i
+                  class="fa-brands fa-github" style="color:#181717;"></i><span>thecompanycompany</span></a></li>
+            <li><a href="https://github.com/tinted-software" target="_blank" class="social-link"><i
+                  class="fa-brands fa-github" style="color:#181717;"></i><span>Tinted Software</span></a></li>
+          </ul>
+
+          <div class="alt-header mt-2">Reddit</div>
+          <ul class="social-list alt-grid">
+            <li><a href="https://www.reddit.com/user/FaithfullStudios/" target="_blank" class="social-link"><i
+                  class="fa-brands fa-reddit-alien" style="color:#ff4500;"></i><span>u/FaithfullStudios</span></a></li>
+          </ul>
+
+        </div>
+      </details>
+
+      <!-- DOMAINS DROPDOWN -->
+      <details class="alts-details mt-2">
+        <summary><i class="fa-solid fa-caret-right"></i> Domains (also a long list!)</summary>
+        <div class="details-content">
+          <ul class="social-list alt-grid">
+            <li><a href="https://faithfullstudios.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.com</span></a></li>
+            <li><a href="https://faithfullstudios.net" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.net</span></a></li>
+            <li><a href="https://faithfullstudios.org" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.org</span></a></li>
+            <li><a href="https://faithfullstudios.store" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.store</span></a></li>
+            <li><a href="https://faithfullstudios.shop" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.shop</span></a></li>
+            <li><a href="https://faithfullstudios.info" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.info</span></a></li>
+            <li><a href="https://faithfullstudios.life" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.life</span></a></li>
+            <li><a href="https://faithfullstudios.ai" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.ai</span></a></li>
+            <li><a href="https://faithfullstudios.co" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.co</span></a></li>
+            <li><a href="https://faithfullstudios.xyz" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.xyz</span></a></li>
+            <li><a href="https://faithfullrecords.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullrecords.com</span></a></li>
+            <li><a href="https://faithfullrecords.net" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullrecords.net</span></a></li>
+            <li><a href="https://faithfullrecords.xyz" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullrecords.xyz</span></a></li>
+            <li><a href="https://faithfullrecords.info" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullrecords.info</span></a></li>
+            <li><a href="https://faithfullrecords.store" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullrecords.store</span></a></li>
+            <li><a href="https://pewdiebird.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>pewdiebird.com</span></a></li>
+            <li><a href="https://pewdiebird.io" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>pewdiebird.io</span></a></li>
+            <li><a href="https://faithfullrecords.music" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullrecords.music</span></a></li>
+            <li><a href="https://randylent.yt" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randylent.yt</span></a></li>
+            <li><a href="https://randyviewer.yt" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randyviewer.yt</span></a></li>
+            <li><a href="https://randylent.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randylent.com</span></a></li>
+            <li><a href="https://randylent.net" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randylent.net</span></a></li>
+            <li><a href="https://randyviewer.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randyviewer.com</span></a></li>
+            <li><a href="https://randyplush.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randyplush.com</span></a></li>
+            <li><a href="https://randyviewer.tv" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>randyviewer.tv</span></a></li>
+            <li><a href="https://faithfull.studio" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfull.studio</span></a></li>
+            <li><a href="https://faithfullstudios.jp" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>faithfullstudios.jp</span></a></li>
+            <li><a href="https://tinted.dev" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>tinted.dev</span></a></li>
+            <li><a href="https://tintedos.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>tintedos.com</span></a></li>
+            <li><a href="https://womenlovethisguy.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>womenlovethisguy.com</span></a></li>
+            <li><a href="https://twiffer.net" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>twiffer.net</span></a></li>
+            <li><a href="https://thecompanycompanyco.co" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>thecompanycompanyco.co</span></a></li>
+            <li><a href="https://cookiexrandy.com" target="_blank" class="social-link"><i class="fa-solid fa-globe" style="color:#3a7bd5;"></i><span>cookiexrandy.com</span></a></li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <p class="status-bar-field status-claim">If it's not listed on here, it's not me.</p>
+    </div>
+  </div>
+
+  <!-- ABOUT ME WINDOW -->
+  <div class="window glass active" id="about-window" style="display: none; z-index: 20;">
+    <div class="title-bar" id="aboutTitleBar">
+      <div class="title-bar-text">About Me</div>
+      <div class="title-bar-controls">
+        <button aria-label="Close" id="closeAbout"></button>
+      </div>
+    </div>
+
+    <div class="window-body text-content has-scrollbar">
+      <p style="margin-top:0;"><strong>Welcome to one of my pages!</strong> I hope you enjoy your stay.</p>
+
+      <p>I make whatever I feel like, whenever I feel like it, so don’t expect a schedule. So far that’s been
+        documentaries, commentary, gaming, skits, stop-motion, animation, music, vlogs, animatronic collecting,
+        educational stuff, and plenty of random experiments.</p>
+
+      <p>I’m also a x3.5 Emmy Award Winning Director and the founder of Faithfull Studios.</p>
+
+      <hr class="about-divider">
+
+      <p class="quote">
+        "That is possibly the worst thing I've ever heard, and I loved every second of&nbsp;it."<br>
+        <span>— Laufey, 2x Grammy Winner & Official Channel Subscriber</span>
+      </p>
+
+      <p style="font-size: 11px; text-align: center; color: #666;">
+        <em>(Also followed by Nancy Sinatra on Twitter!)</em>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>

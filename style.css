@@ -1,0 +1,409 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --frame-radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  background: #000;
+  font-family: "Inter", sans-serif;
+  color: #111;
+}
+
+#webgl-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+html.lg-svg body,
+html.lg-nogl body {
+  background: #000 url("2.jpg") center / cover no-repeat;
+}
+
+html.lg-svg #webgl-canvas,
+html.lg-nogl #webgl-canvas {
+  display: none;
+}
+
+.window.glass {
+  position: absolute;
+  border-radius: var(--frame-radius);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 24px);
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    0 14px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+#social-window {
+  width: 680px;
+  max-width: 94vw;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#about-window {
+  width: 480px;
+  max-width: 92vw;
+  left: 55%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.window.glass::before,
+.window.glass::after {
+  display: none !important;
+}
+
+html.lg-svg .window.glass {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.lg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.lg-refract {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.lg-shine {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(circle at var(--lg-mx, 50%) var(--lg-my, 50%),
+      rgba(255, 255, 255, 0.42) 0px,
+      rgba(255, 255, 255, 0.22) 20px,
+      rgba(255, 255, 255, 0.08) 55px,
+      rgba(255, 255, 255, 0.03) 140px,
+      rgba(255, 255, 255, 0) 320px);
+}
+
+.window.glass.lg-hover .lg-shine {
+  opacity: 1;
+}
+
+.window.glass>.title-bar {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 10px !important;
+  min-height: 28px !important;
+  cursor: default;
+  touch-action: none;
+}
+
+.window.glass .title-bar-text {
+  font-size: 13px;
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(0, 0, 0, 0.6) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+.window.glass .title-bar-controls {
+  position: absolute !important;
+  top: 0 !important;
+  right: 6px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.window.glass .title-bar-controls button {
+  image-rendering: pixelated;
+}
+
+.window.glass .window-body {
+  background: rgba(255, 255, 255, 0.95) !important;
+  margin: 0 8px 8px 8px !important;
+  padding: 16px !important;
+  border: 1px solid rgba(0, 0, 0, 0.4) !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.window.glass .window-body.has-status {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+/* About Window Formatting */
+.text-content p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #222;
+}
+
+.about-divider {
+  border: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.15);
+  margin: 16px 0;
+}
+
+.text-content .quote {
+  font-style: italic;
+  text-align: center;
+  font-size: 12px;
+  color: #444;
+}
+
+.quote span {
+  display: block;
+  font-weight: 600;
+  font-style: normal;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.window.glass .status-bar {
+  background: rgba(245, 245, 245, 0.95) !important;
+  margin: 0 8px 8px 8px !important;
+  padding: 4px !important;
+  display: flex;
+  gap: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.4) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.status-claim {
+  flex: 1;
+  margin: 0;
+  font-family: Tahoma, sans-serif;
+  font-size: 13px;
+  color: #111;
+  text-align: center;
+  font-weight: bold;
+  padding: 3px 6px !important;
+  background: transparent !important;
+  border: 1px solid rgba(80, 80, 80, 0.4) !important;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.05), inset -1px -1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Dropdown styling */
+details.alts-details {
+  background: #f8f9fa;
+  border: 1px solid #c0c6cc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+details.alts-details summary {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #444;
+  transition: background 0.1s;
+}
+
+details.alts-details summary:hover {
+  background: #fdfdfd;
+}
+
+details.alts-details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 7.css draws its own arrow outside the box; the caret inside is the one we keep. */
+details.alts-details summary::before {
+  display: none;
+}
+
+details.alts-details summary i {
+  transition: transform 0.2s;
+}
+
+details.alts-details[open] summary i {
+  transform: rotate(90deg);
+}
+
+details.alts-details .details-content {
+  padding: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 4px;
+}
+
+.alt-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #777;
+  margin-bottom: 6px;
+}
+
+.mt-2 {
+  margin-top: 16px;
+}
+
+/* Grid Layouts */
+.social-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.social-list.alt-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #c0c6cc;
+  border-radius: 4px;
+  color: #222;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+  min-width: 0;
+}
+
+.alt-grid .social-link {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.social-link:hover,
+.social-link:focus {
+  color: #222;
+  text-decoration: none;
+}
+
+.social-link:hover {
+  background: #fdfdfd;
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 #fff, 0 3px 6px rgba(0, 0, 0, 0.1);
+  border-color: #a0a6ac;
+}
+
+.social-link i {
+  font-size: 20px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.social-link .brand-svg {
+  width: 24px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.social-link .icon-tile {
+  width: 20px;
+  height: 20px;
+  margin: 0 2px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.social-link .icon-tile i {
+  font-size: 10px;
+  min-width: 0;
+  color: #fff;
+  transform: rotate(-20deg);
+}
+
+.alt-grid .social-link i {
+  font-size: 16px;
+  min-width: 20px;
+}
+
+.alt-grid .social-link .brand-svg {
+  width: 20px;
+  height: 15px;
+}
+
+.social-link span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .social-list.alt-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .social-list {
+    grid-template-columns: 1fr;
+  }
+
+  .social-list.alt-grid {
+    grid-template-columns: 1fr;
+  }
+}
