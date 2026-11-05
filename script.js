@@ -151,7 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---- WebGL / Three.js Setup ----
     const canvas = document.getElementById('webgl-canvas');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // Asking for more pixels than the browser can draw squeezes the whole scene into a corner.
+    const gl = renderer.getContext();
+    const maxDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+    const fitPixelRatio = (w, h) => Math.min(window.devicePixelRatio, maxDims[0] / w, maxDims[1] / h);
+
+    renderer.setPixelRatio(fitPixelRatio(window.innerWidth, window.innerHeight));
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     const camera = new THREE.OrthographicCamera(0, window.innerWidth, window.innerHeight, 0, 0.1, 10);
@@ -196,6 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("resize", () => {
         const w = window.innerWidth, h = window.innerHeight;
+        renderer.setPixelRatio(fitPixelRatio(w, h));
         renderer.setSize(w, h);
         camera.right = w; camera.top = h; camera.updateProjectionMatrix();
         baseUniforms.uScreenRes.value.set(w, h);
