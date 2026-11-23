@@ -46,6 +46,16 @@ body {
 
 .edge body {
   min-height: calc(100lvh + 450px);
+  background: transparent;
+}
+
+/* Never a flat color under the wallpaper: if Safari sees one at the edges before
+   the canvas has drawn, it can lock in solid bars there until a reload. */
+.edge {
+  background:
+    linear-gradient(rgba(0, 0, 0, .5) 1px, transparent 1px) 0 0 / 8px 8px,
+    linear-gradient(90deg, rgba(0, 0, 0, .5) 1px, transparent 1px) 0 0 / 8px 8px,
+    #242424;
 }
 
 .edge #gl {

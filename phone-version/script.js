@@ -1218,11 +1218,15 @@
   });
 
   if (EDGE) {
-    // Safari can undo an early scroll, and tapping the clock scrolls to the top.
-    addEventListener("load", () => setTimeout(() => {
+    // Safari sometimes undoes the scroll while the page is still loading, so settle it a few times.
+    const settle = () => {
       measure();
       if (gl) sizeTargets();
-    }, 50));
+    };
+    addEventListener("load", () => [50, 300, 1000].forEach((ms) => setTimeout(settle, ms)));
+    addEventListener("pageshow", settle);
+    if (window.visualViewport) visualViewport.addEventListener("resize", settle);
+    // Tapping the clock scrolls to the top.
     addEventListener("scroll", () => {
       if (scrollY !== LIFT) scrollTo(0, LIFT);
     });
