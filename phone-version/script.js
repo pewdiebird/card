@@ -19,8 +19,6 @@
 
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // iPhones get a page taller than the screen, scrolled down so the stage fills
-  // it, with wallpaper behind Safari's clock and toolbar (see .edge in style.css).
   const EDGE = /iPhone|iPod/.test(navigator.userAgent);
   const LIFT = 150, ABOVE = 70;
   if (EDGE) {
@@ -209,7 +207,6 @@
     const content = $("folder-content");
     content.style.transform = "none";
     // Only as tall as its icons, always leaving a strip of wallpaper below, as iOS did.
-    // Sideways there's no dock below, just the screen's rounded corners and home bar.
     const below = side ? 10 + $("safe-bottom").offsetHeight : $("dock").offsetHeight - 36;
     const room = Math.max(180, innerHeight - folder.top - below);
     folder.height = Math.min(room, content.offsetHeight);
@@ -264,7 +261,6 @@
     folder.drag = null;
   }
 
-  // Momentum, then a spring back if it ran past either end, like iOS lists.
   function coast(s, dt) {
     if (s.drag) return;
     s.y += s.v * dt;
@@ -283,7 +279,7 @@
     folder.lenses.forEach((l) => { l.press += (l.pressTarget - l.press) * (1 - Math.exp(-dt * (l.pressTarget ? 26 : 12))); });
   }
 
-  /* ---------- Notes: scrolled by hand like the folder, so the paper and text move as one ---------- */
+  /* ---------- Notes ---------- */
 
   const notesSheet = $("notes-sheet");
   const notesPaper = notesSheet.querySelector(".notes-paper");
@@ -355,12 +351,9 @@
 
   /* ---------- Layout ---------- */
 
-  // Y0 is where the top of the screen falls in the canvas, in GL pixels.
   let cssW = 1, cssH = 1, scale = 1, W = 1, H = 1, Y0 = 1;
   let quality = 1;
 
-  // A phone on its side: one page of two rows, and the pill stands at the right edge.
-  // It slides in from the edge when the phone turns, and back up into the shelf after.
   let side = false, wasSide = null;
   const pill = { t: 1, dx: 0, dy: 0 };
   let view = { left: 0, right: 1 };
@@ -461,7 +454,6 @@
       } else if(v<.71){
         a=.42; l=1.;
       } else {
-        // Its dark front edge; with wallpaper below it (iPhones), a shadow that fades out instead.
         float k=(v-.71)/.29;
         a=mix(mix(.16,.5,k),.45*(1.-smoothstep(0.,1.,k)),uSoft); l=mix(.8,0.,clamp((v-.71)/.12,0.,1.));
       }
@@ -909,7 +901,6 @@
         folderEl.style.clipPath = `inset(0 0 ${(folder.height * (1 - sheet.t)).toFixed(1)}px 0)`;
       } else {
         scrollNotes(dt);
-        // Once open, drop the scale: iOS can stop clipping the notes under a transform.
         sheet.el.style.opacity = sheet.t.toFixed(3);
         sheet.el.style.transform = sheet.t === 1 ? "none" : `scale(${(.9 + .1 * sheet.t).toFixed(4)})`;
       }
@@ -947,7 +938,6 @@
     drawQuad(P.glass);
   }
 
-  // How far the pill still has to travel on its way in, easing out.
   function pillOffset() {
     if (!capsule || pill.t >= 1) return { x: 0, y: 0 };
     const k = Math.pow(1 - pill.t, 3);
@@ -1218,7 +1208,6 @@
   });
 
   if (EDGE) {
-    // Safari sometimes undoes the scroll while the page is still loading, so settle it a few times.
     const settle = () => {
       measure();
       if (gl) sizeTargets();
@@ -1226,7 +1215,6 @@
     addEventListener("load", () => [50, 300, 1000].forEach((ms) => setTimeout(settle, ms)));
     addEventListener("pageshow", settle);
     if (window.visualViewport) visualViewport.addEventListener("resize", settle);
-    // Tapping the clock scrolls to the top.
     addEventListener("scroll", () => {
       if (scrollY !== LIFT) scrollTo(0, LIFT);
     });

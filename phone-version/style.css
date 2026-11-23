@@ -35,9 +35,6 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
-/* iPhone Safari only shows a page behind its clock and toolbar when there's
-   page above and below the screen. So there the page is taller than the screen
-   and sits scrolled down to the stage; script.js sizes and scrolls it. */
 .edge,
 .edge body {
   height: auto;
@@ -49,8 +46,6 @@ body {
   background: transparent;
 }
 
-/* Never a flat color under the wallpaper: if Safari sees one at the edges before
-   the canvas has drawn, it can lock in solid bars there until a reload. */
 .edge {
   background:
     linear-gradient(rgba(0, 0, 0, .5) 1px, transparent 1px) 0 0 / 8px 8px,
@@ -230,7 +225,7 @@ body {
   mask-image: linear-gradient(to top, #000, transparent 72%);
 }
 
-/* ---------- Phone on its side: two rows of six, the pill stands at the right ---------- */
+/* ---------- Sideways ---------- */
 
 .side {
   --pill: calc(100px + env(safe-area-inset-right));
@@ -304,7 +299,6 @@ body {
 
 /* ---------- Sheets ---------- */
 
-/* Measured only: how much room the home bar needs */
 #safe-bottom {
   position: absolute;
   visibility: hidden;
@@ -450,7 +444,6 @@ body {
   user-select: text;
 }
 
-/* The paper scrolls as one piece with the text, so the lines can't lag behind it */
 .notes-text {
   position: relative;
   z-index: 0;
@@ -458,7 +451,6 @@ body {
   will-change: transform;
 }
 
-/* Reaches far past both ends (a whole number of lines) so a bounce still shows paper */
 .notes-text::before {
   content: "";
   position: absolute;

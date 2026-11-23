@@ -13,8 +13,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#141414" />
-  <!-- iPhone Safari paints this color over the page behind its bars, so drop it there.
-       Marking iPhones this early gives the page its grid before the first paint (see .edge in style.css). -->
   <script>
     if (/iPhone|iPod/.test(navigator.userAgent)) {
       document.currentScript.previousElementSibling.remove();
@@ -25,7 +23,6 @@
   <!-- Full paths: script.js moves the address up a folder, which would break relative ones -->
   <link rel="icon" href="/card/favicon.png" sizes="180x180" />
   <link rel="icon" href="/card/favicon.svg" type="image/svg+xml" />
-  <!-- Bump ?v= when these change, so phones fetch the new copy instead of a saved one -->
   <link rel="stylesheet" href="style.css?v=3" />
 </head>
 
@@ -41,7 +38,6 @@
 
     <div id="dock">
       <div class="shelf"></div>
-      <!-- The spans stack into short lines when the pill stands up sideways -->
       <p class="capsule" id="capsule"><span><span>If it's</span> <span>not listed</span> <span>on here,</span> <span>it's</span> <span>not me.</span></span></p>
       <p class="capsule-reflection" aria-hidden="true">If it's not listed on here, it's not me.</p>
     </div>
