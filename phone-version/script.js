@@ -13,10 +13,28 @@
   const DATA = window.PHONE_DATA;
   const $ = (id) => document.getElementById(id);
   const stage = $("stage");
+  const pagesEl = $("pages");
   const pager = $("pager");
   const canvas = $("gl");
 
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // iPhones get a page taller than the screen, scrolled down so the stage fills
+  // it, with wallpaper behind Safari's clock and toolbar (see .edge in style.css).
+  const EDGE = /iPhone|iPod/.test(navigator.userAgent);
+  const LIFT = 150, ABOVE = 70;
+  if (EDGE) {
+    document.documentElement.classList.add("edge");
+    history.scrollRestoration = "manual";
+  }
+
+  function fitEdge() {
+    if (!EDGE) return;
+    const tall = Math.max(screen.width, screen.height);
+    stage.style.height = `${innerHeight}px`;
+    canvas.style.height = `${tall + ABOVE}px`;
+    if (scrollY !== LIFT) scrollTo(0, LIFT);
+  }
 
   /* ---------- Build the pages ---------- */
 
@@ -161,7 +179,9 @@
       openSheet(folderEl, opener);
       layoutFolder();
     } else if (item.action === "notes") {
-      openSheet($("notes-sheet"), opener);
+      notes.y = notes.v = 0;
+      openSheet(notesSheet, opener);
+      measureNotes();
     }
   }
 
@@ -189,7 +209,9 @@
     const content = $("folder-content");
     content.style.transform = "none";
     // Only as tall as its icons, always leaving a strip of wallpaper below, as iOS did.
-    const room = Math.max(180, cssH - folder.top - ($("dock").offsetHeight - 36));
+    // Sideways there's no dock below, just the screen's rounded corners and home bar.
+    const below = side ? 10 + $("safe-bottom").offsetHeight : $("dock").offsetHeight - 36;
+    const room = Math.max(180, innerHeight - folder.top - below);
     folder.height = Math.min(room, content.offsetHeight);
     folderEl.style.top = `${folder.top}px`;
     folderEl.style.height = `${folder.height}px`;
@@ -242,19 +264,65 @@
     folder.drag = null;
   }
 
-  function scrollFolder(dt) {
-    if (!folder.drag) {
-      folder.y += folder.v * dt;
-      folder.v *= Math.exp(-dt * 2.6);
-      const held = Math.max(0, Math.min(folder.max, folder.y));
-      if (held !== folder.y) {
-        folder.v = 0;
-        folder.y += (held - folder.y) * (1 - Math.exp(-dt * 14));
-        if (Math.abs(held - folder.y) < .25) folder.y = held;
-      }
+  // Momentum, then a spring back if it ran past either end, like iOS lists.
+  function coast(s, dt) {
+    if (s.drag) return;
+    s.y += s.v * dt;
+    s.v *= Math.exp(-dt * 2.6);
+    const held = Math.max(0, Math.min(s.max, s.y));
+    if (held !== s.y) {
+      s.v = 0;
+      s.y += (held - s.y) * (1 - Math.exp(-dt * 14));
+      if (Math.abs(held - s.y) < .25) s.y = held;
     }
+  }
+
+  function scrollFolder(dt) {
+    coast(folder, dt);
     $("folder-content").style.transform = `translate3d(0,${(-folder.y).toFixed(2)}px,0)`;
     folder.lenses.forEach((l) => { l.press += (l.pressTarget - l.press) * (1 - Math.exp(-dt * (l.pressTarget ? 26 : 12))); });
+  }
+
+  /* ---------- Notes: scrolled by hand like the folder, so the paper and text move as one ---------- */
+
+  const notesSheet = $("notes-sheet");
+  const notesPaper = notesSheet.querySelector(".notes-paper");
+  const notesText = notesSheet.querySelector(".notes-text");
+  const notes = { y: 0, v: 0, max: 0, drag: null };
+
+  function measureNotes() {
+    notes.max = Math.max(0, notesText.offsetHeight - notesPaper.clientHeight);
+    notes.y = Math.min(notes.y, notes.max);
+  }
+
+  function onNotesDown(e) {
+    if (e.button || notes.drag) return;
+    notes.v = 0;
+    notes.drag = { id: e.pointerId, y0: e.clientY, y: e.clientY, t: e.timeStamp, start: notes.y };
+  }
+
+  function onNotesMove(e) {
+    const d = notes.drag;
+    if (!d || e.pointerId !== d.id) return;
+    let y = d.start - (e.clientY - d.y0);
+    if (y < 0) y *= .35;
+    else if (y > notes.max) y = notes.max + (y - notes.max) * .35;
+    notes.y = y;
+    notes.v = -(e.clientY - d.y) / Math.max(1, e.timeStamp - d.t) * 1000;
+    d.y = e.clientY;
+    d.t = e.timeStamp;
+  }
+
+  function onNotesUp(e) {
+    const d = notes.drag;
+    if (!d || e.pointerId !== d.id) return;
+    if (e.type !== "pointerup" || e.timeStamp - d.t > 80) notes.v = 0;
+    notes.drag = null;
+  }
+
+  function scrollNotes(dt) {
+    coast(notes, dt);
+    notesText.style.transform = `translate3d(0,${(-notes.y).toFixed(2)}px,0)`;
   }
 
   function measureSheet() {
@@ -287,32 +355,53 @@
 
   /* ---------- Layout ---------- */
 
-  let cssW = 1, cssH = 1, scale = 1, W = 1, H = 1;
+  // Y0 is where the top of the screen falls in the canvas, in GL pixels.
+  let cssW = 1, cssH = 1, scale = 1, W = 1, H = 1, Y0 = 1;
   let quality = 1;
 
+  // A phone on its side: one page of two rows, and the pill stands at the right edge.
+  // It slides in from the edge when the phone turns, and back up into the shelf after.
+  let side = false, wasSide = null;
+  const pill = { t: 1, dx: 0, dy: 0 };
+  let view = { left: 0, right: 1 };
+
   function measure() {
-    cssW = innerWidth;
-    cssH = innerHeight;
+    fitEdge();
+    cssW = canvas.clientWidth || innerWidth;
+    cssH = canvas.clientHeight || innerHeight;
     scale = Math.min(devicePixelRatio || 1, 2) * quality;
     W = Math.max(1, Math.round(cssW * scale));
     H = Math.max(1, Math.round(cssH * scale));
-    pageWidth = stage.clientWidth;
-    perView = pageWidth >= 600 ? 2 : 1;
+    Y0 = H + Math.round(canvas.getBoundingClientRect().top * scale);
+    side = innerWidth > innerHeight && innerHeight < 500;
+    if (wasSide !== null && side !== wasSide && !reducedMotion) {
+      pill.t = 0;
+      pill.dx = side ? 1 : 0;
+      pill.dy = side ? 0 : 1;
+    }
+    wasSide = side;
+    stage.classList.toggle("side", side);
+    pageWidth = pagesEl.clientWidth;
+    perView = !side && pageWidth >= 600 ? 2 : 1;
     stage.classList.toggle("spread", perView === 2);
     setPage(page);
     pagerX = pagerTarget;
     pager.style.transform = `translate3d(${pagerX}px,0,0)`;
     // The dock rides down with an open folder; measure where it rests.
     $("dock").style.transform = "none";
+    $("capsule").style.transform = "none";
+    const v = pagesEl.getBoundingClientRect();
+    view = { left: v.left, right: v.right };
     lenses.forEach((l) => {
       const r = l.tile.getBoundingClientRect();
       l.base = { x: r.left + r.width / 2 - pagerX, y: r.top + r.height / 2, hw: r.width / 2, hh: r.height / 2 };
     });
     const c = $("capsule").getBoundingClientRect();
     capsule = { x: c.left + c.width / 2, y: c.top + c.height / 2, hw: c.width / 2, hh: c.height / 2 };
-    shelf = document.querySelector(".shelf").getBoundingClientRect();
+    shelf = side ? null : document.querySelector(".shelf").getBoundingClientRect();
     measureSheet();
     if (sheet.el === folderEl) layoutFolder();
+    if (sheet.el === notesSheet) measureNotes();
   }
 
   let capsule = null;
@@ -354,6 +443,7 @@
   const FS_SHELF = `
     precision highp float;
     uniform vec4 uBox;
+    uniform float uSoft;
     void main(){
       vec2 q=gl_FragCoord.xy;
       float u=(q.x-uBox.x)/(uBox.z-uBox.x);
@@ -371,9 +461,11 @@
       } else if(v<.71){
         a=.42; l=1.;
       } else {
-        a=mix(.16,.5,(v-.71)/.29); l=mix(.8,0.,clamp((v-.71)/.12,0.,1.));
+        // Its dark front edge; with wallpaper below it (iPhones), a shadow that fades out instead.
+        float k=(v-.71)/.29;
+        a=mix(mix(.16,.5,k),.45*(1.-smoothstep(0.,1.,k)),uSoft); l=mix(.8,0.,clamp((v-.71)/.12,0.,1.));
       }
-      a*=side*top;
+      a*=side*top*step(v,1.);
       gl_FragColor=vec4(vec3(l*.86,l*.89,l*.95)*a,a);
     }`;
 
@@ -607,7 +699,7 @@
     P = {
       grid: compile(VS_FULL, FS_GRID, ["uCell", "uRes"]),
       copy: compile(VS_FULL, FS_COPY, ["uTex", "uGain"]),
-      shelf: compile(VS_FULL, FS_SHELF, ["uBox"]),
+      shelf: compile(VS_FULL, FS_SHELF, ["uBox", "uSoft"]),
       split: compile(VS_FULL, FS_SPLIT, ["uTex", "uBlur", "uRes", "uCut", "uPx"]),
       down: compile(VS_FULL, FS_DOWN, ["uTex", "uTexel"]),
       pulse: compile(VS_PULSE, FS_PULSE, ["uRes", "uGrid"]),
@@ -717,7 +809,7 @@
   // Tapping empty space fires one trail in each direction, like the original.
   function emitFromTap(x, y) {
     const i = Math.floor(x * scale / cellPx);
-    const j = Math.floor((H - y * scale) / cellPx);
+    const j = Math.floor((Y0 - y * scale) / cellPx);
     [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => addPulse(i, j, dx, dy, pick(COLORS)));
     const color = pick(COLORS);
     flashes.push({ i, j, color, life: 1 });
@@ -805,6 +897,7 @@
     if (sheet.el) {
       const closingFolder = sheet.el === folderEl;
       sheet.t += (sheet.target - sheet.t) * (1 - Math.exp(-dt * 16));
+      if (Math.abs(sheet.target - sheet.t) < .002) sheet.t = sheet.target;
       if (sheet.target === 0 && sheet.t < .01) {
         sheet.el.style.display = "none";
         if (closingFolder) document.querySelectorAll(".app.opened").forEach((el) => el.classList.remove("opened"));
@@ -815,15 +908,22 @@
         scrollFolder(dt);
         folderEl.style.clipPath = `inset(0 0 ${(folder.height * (1 - sheet.t)).toFixed(1)}px 0)`;
       } else {
+        scrollNotes(dt);
+        // Once open, drop the scale: iOS can stop clipping the notes under a transform.
         sheet.el.style.opacity = sheet.t.toFixed(3);
-        sheet.el.style.transform = `scale(${(.9 + .1 * sheet.t).toFixed(4)})`;
+        sheet.el.style.transform = sheet.t === 1 ? "none" : `scale(${(.9 + .1 * sheet.t).toFixed(4)})`;
       }
     }
     const isFolder = sheet.el === folderEl;
     // Whatever sits below the split rides down as the folder opens.
     const pushed = isFolder ? `translate3d(0,${(folder.height * sheet.t).toFixed(1)}px,0)` : "none";
-    $("dock").style.transform = pushed;
+    $("dock").style.transform = side ? "none" : pushed;
     $("dots").style.transform = pushed;
+    if (pill.t < 1) pill.t = Math.min(1, pill.t + dt / .45);
+    const off = pillOffset();
+    const slide = pill.t < 1 ? `translate3d(${off.x.toFixed(1)}px,${off.y.toFixed(1)}px,0)` : "none";
+    $("capsule").style.transform = slide;
+    document.querySelector(".capsule-reflection").style.transform = pill.t < 1 ? `${slide} scaleY(-1)` : "";
     pager.style.opacity = (1 - sheet.t * (isFolder ? .75 : 1)).toFixed(3);
     if (gl) updatePulses(dt);
   }
@@ -834,7 +934,7 @@
 
   function drawLens(g, x, y, hw, hh, radius, opts) {
     const u = P.glass.u;
-    gl.uniform4f(u.uRect, x * scale, H - y * scale, hw * scale, hh * scale);
+    gl.uniform4f(u.uRect, x * scale, Y0 - y * scale, hw * scale, hh * scale);
     gl.uniform1f(u.uRadius, radius * scale);
     gl.uniform1f(u.uHasArt, opts.cell ? 1 : 0);
     if (opts.cell) gl.uniform4f(u.uAtlas, opts.cell[0], opts.cell[1], opts.cell[2], opts.cell[3]);
@@ -845,6 +945,13 @@
     gl.uniform1f(u.uFrost, opts.frost);
     gl.uniform1f(u.uPress, opts.press || 0);
     drawQuad(P.glass);
+  }
+
+  // How far the pill still has to travel on its way in, easing out.
+  function pillOffset() {
+    if (!capsule || pill.t >= 1) return { x: 0, y: 0 };
+    const k = Math.pow(1 - pill.t, 3);
+    return { x: k * pill.dx * (capsule.hw * 2 + 40), y: k * pill.dy * (capsule.hh * 2 + 60) };
   }
 
   function render() {
@@ -882,7 +989,8 @@
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.useProgram(P.shelf.prog);
-      gl.uniform4f(P.shelf.u.uBox, shelf.left * scale, H - shelf.top * scale, shelf.right * scale, H - shelf.bottom * scale);
+      gl.uniform4f(P.shelf.u.uBox, shelf.left * scale, Y0 - shelf.top * scale, shelf.right * scale, Y0 - shelf.bottom * scale);
+      gl.uniform1f(P.shelf.u.uSoft, EDGE ? 1 : 0);
       drawQuad(P.shelf);
       gl.disable(gl.BLEND);
     }
@@ -901,7 +1009,7 @@
 
     const isFolder = sheet.el === folderEl;
     const openPx = isFolder ? Math.round(folder.height * sheet.t * scale) : 0;
-    const panelTop = H - Math.round(folder.top * scale);
+    const panelTop = Y0 - Math.round(folder.top * scale);
     let wall = targets.scene;
     if (openPx > 0) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, targets.split.fb);
@@ -942,7 +1050,7 @@
         const b = l.base;
         if (!b) return;
         const x = b.x + pagerX;
-        if (x + b.hw + 14 < 0 || x - b.hw - 14 > cssW) return;
+        if (x + b.hw + 14 < view.left || x - b.hw - 14 > view.right) return;
         const shrink = 1 - l.press * .07;
         const cell = atlasCells[l.art];
         if (!cell) return;
@@ -951,9 +1059,10 @@
     }
 
     if (capsule) {
-      const pushed = openPx / scale;
+      const pushed = side ? 0 : openPx / scale;
+      const off = pillOffset();
       if (capsule.y + pushed - capsule.hh - 14 < cssH) {
-        drawLens(u, capsule.x, capsule.y + pushed, capsule.hw, capsule.hh, capsule.hh, { tint: [.2, .28, .48, .52], alpha: 1, gloss: .6, frost: .45 });
+        drawLens(u, capsule.x + off.x, capsule.y + pushed + off.y, capsule.hw, capsule.hh, Math.min(capsule.hw, capsule.hh), { tint: [.2, .28, .48, .52], alpha: 1, gloss: .6, frost: .45 });
       }
     }
 
@@ -986,7 +1095,7 @@
   function frame(now) {
     if (!running) return;
     requestAnimationFrame(frame);
-    const busy = drag || now < boostUntil || sheet.el || pagerX !== pagerTarget || lenses.some((l) => l.press > .01);
+    const busy = drag || now < boostUntil || sheet.el || pill.t < 1 || pagerX !== pagerTarget || lenses.some((l) => l.press > .01);
     // The wallpaper idles at 30fps to save battery; touching it goes full speed.
     if (!busy && now - last < 31) return;
     const elapsed = now - last;
@@ -1084,6 +1193,16 @@
     else if (b.y + b.hh + 46 > folder.y + folder.height) folder.y = Math.min(folder.max, b.y + b.hh + 46 - folder.height);
   });
 
+  notesPaper.addEventListener("pointerdown", onNotesDown);
+  addEventListener("pointermove", onNotesMove);
+  addEventListener("pointerup", onNotesUp);
+  addEventListener("pointercancel", onNotesUp);
+  notesPaper.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    notes.v = 0;
+    notes.y = Math.max(0, Math.min(notes.max, notes.y + e.deltaY));
+  }, { passive: false });
+
   $("scrim").addEventListener("click", closeSheet);
   $("notes-done").addEventListener("click", closeSheet);
   addEventListener("keydown", (e) => {
@@ -1097,6 +1216,17 @@
     measure();
     if (gl) sizeTargets();
   });
+
+  if (EDGE) {
+    // Safari can undo an early scroll, and tapping the clock scrolls to the top.
+    addEventListener("load", () => setTimeout(() => {
+      measure();
+      if (gl) sizeTargets();
+    }, 50));
+    addEventListener("scroll", () => {
+      if (scrollY !== LIFT) scrollTo(0, LIFT);
+    });
+  }
 
   canvas.addEventListener("webglcontextlost", (e) => {
     e.preventDefault();

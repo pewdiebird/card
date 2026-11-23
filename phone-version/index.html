@@ -13,6 +13,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#141414" />
+  <!-- iPhone Safari paints this color over the page behind its bars, so drop it there -->
+  <script>if (/iPhone|iPod/.test(navigator.userAgent)) document.currentScript.previousElementSibling.remove();</script>
   <title>Randy Lent</title>
   <!-- Full paths: script.js moves the address up a folder, which would break relative ones -->
   <link rel="icon" href="/card/favicon.png" sizes="180x180" />
@@ -25,16 +27,20 @@
   <canvas id="gl" aria-hidden="true"></canvas>
 
   <main id="stage">
-    <div id="pager"></div>
+    <div id="pages">
+      <div id="pager"></div>
+    </div>
     <div id="dots" aria-hidden="true"></div>
 
     <div id="dock">
       <div class="shelf"></div>
-      <p class="capsule" id="capsule">If it's not listed on here, it's not me.</p>
+      <!-- The spans stack into short lines when the pill stands up sideways -->
+      <p class="capsule" id="capsule"><span><span>If it's</span> <span>not listed</span> <span>on here,</span> <span>it's</span> <span>not me.</span></span></p>
       <p class="capsule-reflection" aria-hidden="true">If it's not listed on here, it's not me.</p>
     </div>
 
     <div id="scrim"></div>
+    <div id="safe-bottom" aria-hidden="true"></div>
 
     <!-- FOLDER: the screen splits under the icon and this opens in the gap -->
     <section class="folder" id="folder" role="dialog" aria-modal="true" aria-labelledby="folder-title">
@@ -55,18 +61,20 @@
       </header>
       <div class="notes-tear" aria-hidden="true"></div>
       <div class="notes-paper">
-        <p><strong>Welcome to one of my pages!</strong> I hope you enjoy your stay.</p>
+        <div class="notes-text">
+          <p><strong>Welcome to one of my pages!</strong> I hope you enjoy your stay.</p>
 
-        <p>I make whatever I feel like, whenever I feel like it, so don’t expect a schedule. So far that’s been
-          documentaries, commentary, gaming, skits, stop-motion, animation, music, vlogs, animatronic collecting,
-          educational stuff, and plenty of random experiments.</p>
+          <p>I make whatever I feel like, whenever I feel like it, so don’t expect a schedule. So far that’s been
+            documentaries, commentary, gaming, skits, stop-motion, animation, music, vlogs, animatronic collecting,
+            educational stuff, and plenty of random experiments.</p>
 
-        <p>I’m also a x3.5 Emmy Award Winning Director and the founder of Faithfull Studios.</p>
+          <p>I’m also a x3.5 Emmy Award Winning Director and the founder of Faithfull Studios.</p>
 
-        <p class="quote">"That is possibly the worst thing I've ever heard, and I loved every second of&nbsp;it."<br>
-          <span>— Laufey, 2x Grammy Winner &amp; Official Channel Subscriber</span></p>
+          <p class="quote">"That is possibly the worst thing I've ever heard, and I loved every second of&nbsp;it."<br>
+            <span>— Laufey, 2x Grammy Winner &amp; Official Channel Subscriber</span></p>
 
-        <p class="aside">(Also followed by Nancy Sinatra on Twitter!)</p>
+          <p class="aside">(Also followed by Nancy Sinatra on Twitter!)</p>
+        </div>
       </div>
     </section>
   </main>
